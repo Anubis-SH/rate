@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم التقييمات</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 20px;
+            min-height: 100vh;
+            background: url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 15, 30, 0.6); /* تعتيم أقوى قليلاً لسهولة قراءة الجدول */
+            z-index: -1;
+        }
+
+        .dashboard-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            width: 100%;
+            max-width: 1200px;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .total-count {
+            background: rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* تنسيق الجدول */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            min-width: 900px; /* لضمان عدم تداخل البيانات في الشاشات الصغيرة */
+        }
+
+        th, td {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        td {
+            font-size: 1rem;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        /* تنسيقات خاصة للخلايا */
+        .rating-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+        }
+
+        .emoji-icon {
+            font-size: 1.5rem;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .badge-danger {
+            background: rgba(248, 113, 113, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, 0.4);
+        }
+
+        .badge-success {
+            background: rgba(52, 211, 153, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+        }
+
+        .date-time {
+            direction: ltr;
+            text-align: right;
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+        }
+
+        /* حالة التحميل */
+        #loader {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="header">
+            <h2>لوحة تحكم التقييمات 📊</h2>
+            <div class="total-count">إجمالي التقييمات: <span id="countDisplay">0</span></div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="evaluationsTable">
+                <thead>
+                    <tr>
+                        <th>التاريخ والساعة</th>
+                        <th>اسم السائق</th>
+                        <th>اسم الشركة</th>
+                        <th>التقييم</th>
+                        <th>وقت التحميل</th>
+                        <th>حالة المشكلة</th>
+                        <th>التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+            <div id="loader">جاري جلب البيانات من قاعدة البيانات... ⏳</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // إعدادات الفايربيز الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyACDQlFpC8YszzqVWhT4l9BUeVTAZNyUp8",
+            authDomain: "rate-b53e9.firebaseapp.com",
+            projectId: "rate-b53e9",
+            storageBucket: "rate-b53e9.firebasestorage.app",
+            messagingSenderId: "790364557261",
+            appId: "1:790364557261:web:4ed06faaa81ea49361be84"
+        };
+
+        // تهيئة الفايربيز
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const tableBody = document.getElementById('tableBody');
+        const loader = document.getElementById('loader');
+        const countDisplay = document.getElementById('countDisplay');
+
+        // قاموس لربط التقييم النصي بالوجه التعبيري
+        const ratingEmojis = {
+            "ممتاز": "🤩",
+            "جيد جداً": "😄",
+            "جيد": "🙂",
+            "مقبول": "😐",
+            "سيئ": "🙁",
+            "سيئ جداً": "😡"
+        };
+
+        // دالة لجلب البيانات وعرضها
+        async function fetchEvaluations() {
+            try {
+                // جلب البيانات وترتيبها بالأحدث (عن طريق حقل timestamp)
+                const q = query(collection(db, "loading_evaluations"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                loader.style.display = 'none'; // إخفاء رسالة التحميل
+                countDisplay.innerText = querySnapshot.size; // عرض عدد التقييمات
+
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 30px;">لا توجد تقييمات مسجلة حتى الآن.</td></tr>`;
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    
+                    // معالجة التاريخ والساعة
+                    let formattedDateTime = "غير محدد";
+                    if (data.timestamp) {
+                        const dateObj = data.timestamp.toDate();
+                        const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                        const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+                        
+                        const datePart = dateObj.toLocaleDateString('ar-EG', dateOptions);
+                        const timePart = dateObj.toLocaleTimeString('ar-EG', timeOptions);
+                        formattedDateTime = `${datePart} - ${timePart}`;
+                    }
+
+                    // معالجة حالة المشكلة
+                    const problemBadge = data.hasProblem 
+                        ? `<span class="badge badge-danger">يوجد مشكلة</span>` 
+                        : `<span class="badge badge-success">لا يوجد</span>`;
+
+                    const emoji = ratingEmojis[data.rating] || "📝";
+
+                    // إنشاء صف الجدول
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="date-time">${formattedDateTime}</span></td>
+                        <td>${data.driverName || 'غير محدد'}</td>
+                        <td>${data.companyName || 'غير محدد'}</td>
+                        <td>
+                            <div class="rating-cell">
+                                <span class="emoji-icon">${emoji}</span>
+                                <span>${data.rating}</span>
+                            </div>
+                        </td>
+                        <td>${data.loadingTime && data.loadingTime !== 'غير محدد' ? data.loadingTime : '-'}</td>
+                        <td>${problemBadge}</td>
+                        <td style="max-width: 250px; white-space: normal;">
+                            ${data.problemDetails ? data.problemDetails : '-'}
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+                loader.innerHTML = `<span style="color: #f87171;">حدث خطأ أثناء جلب البيانات. تأكد من اتصال الإنترنت أو إعدادات قاعدة البيانات.</span>`;
+            }
+        }
+
+        // تشغيل الدالة عند تحميل الصفحة
+        fetchEvaluations();
+    </script>
+</body>
+</html>
