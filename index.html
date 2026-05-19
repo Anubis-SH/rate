@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم التحميل</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* خلفية فضائية عالية الجودة */
+            background: url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+        }
+
+        /* طبقة تعتيم خفيفة فوق الخلفية لزيادة وضوح المربع */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 15, 30, 0.4);
+            z-index: -1;
+        }
+
+        .container {
+            /* تأثير الزجاج - Glassmorphism */
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px;
+            padding: 35px 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* تنسيق الأوجه */
+        .rating-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .rate-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 15px 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rate-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .rate-option.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #60a5fa;
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+            transform: scale(1.05);
+        }
+
+        .emoji {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .rate-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .rate-option.active .rate-text {
+            color: #ffffff;
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+
+        /* الحقول الأساسية (اسم السائق والشركة) */
+        .main-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            text-align: right;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 1.1rem; /* تكبير الخط كما طلبت */
+            color: var(--text-main);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #60a5fa;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
+        }
+        
+        select.form-control option {
+            background-color: #1e293b;
+            color: #fff;
+        }
+
+        /* زر المشكلة */
+        .problem-btn-container {
+            margin-bottom: 20px;
+        }
+
+        #toggleProblemBtn {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        #toggleProblemBtn:hover {
+            color: #f87171;
+        }
+
+        /* النموذج المخفي (التفاصيل) */
+        #problemForm {
+            display: none;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* زر الإرسال */
+        #submitBtn {
+            background: linear-gradient(135deg, var(--primary-color), #00d2ff);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 14px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #submitBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+        }
+
+        #submitBtn:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* رسالة النجاح */
+        #successMsg {
+            display: none;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 20px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>كيف كانت تجربة التحميل اليوم؟ 🚛</h2>
+
+        <div class="rating-grid" id="ratingOptions">
+            <div class="rate-option" data-value="ممتاز">
+                <span class="emoji">🤩</span>
+                <span class="rate-text">ممتاز</span>
+            </div>
+            <div class="rate-option" data-value="جيد جداً">
+                <span class="emoji">😄</span>
+                <span class="rate-text">جيد جداً</span>
+            </div>
+            <div class="rate-option" data-value="جيد">
+                <span class="emoji">🙂</span>
+                <span class="rate-text">جيد</span>
+            </div>
+            <div class="rate-option" data-value="مقبول">
+                <span class="emoji">😐</span>
+                <span class="rate-text">مقبول</span>
+            </div>
+            <div class="rate-option" data-value="سيئ">
+                <span class="emoji">🙁</span>
+                <span class="rate-text">سيئ</span>
+            </div>
+            <div class="rate-option" data-value="سيئ جداً">
+                <span class="emoji">😡</span>
+                <span class="rate-text">سيئ جداً</span>
+            </div>
+        </div>
+
+        <div class="main-fields">
+            <div class="form-group">
+                <label for="driverName">اسم السائق</label>
+                <input type="text" id="driverName" class="form-control" placeholder="اكتب اسمك هنا...">
+            </div>
+            <div class="form-group">
+                <label for="companyName">اسم الشركة</label>
+                <input type="text" id="companyName" class="form-control" placeholder="اكتب اسم شركتك هنا...">
+            </div>
+        </div>
+
+        <div class="problem-btn-container">
+            <button id="toggleProblemBtn">
+                <span>⚠️</span> هل واجهتك مشكلة؟
+            </button>
+        </div>
+
+        <div id="problemForm">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="loadingTime">كم استغرق وقت التحميل؟</label>
+                <select id="loadingTime" class="form-control">
+                    <option value="غير محدد">اختر الوقت...</option>
+                    <option value="أقل من ساعة">أقل من ساعة</option>
+                    <option value="من ساعة إلى ساعتين">من ساعة إلى ساعتين</option>
+                    <option value="أكثر من ساعتين">أكثر من ساعتين</option>
+                    <option value="تأخير طويل جداً">تأخير طويل جداً</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="problemDetails">تفاصيل المشكلة (إن وجدت)</label>
+                <textarea id="problemDetails" class="form-control" placeholder="اشرح لنا المشكلة باختصار..."></textarea>
+            </div>
+        </div>
+
+        <button id="submitBtn">
+            إرسال التقييم <span>✔️</span>
+        </button>
+
+        <div id="successMsg">تم إرسال التقييم بنجاح! شكراً لك 🎉</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyACDQlFpC8YszzqVWhT4l9BUeVTAZNyUp8",
+            authDomain: "rate-b53e9.firebaseapp.com",
+            projectId: "rate-b53e9",
+            storageBucket: "rate-b53e9.firebasestorage.app",
+            messagingSenderId: "790364557261",
+            appId: "1:790364557261:web:4ed06faaa81ea49361be84"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let selectedRating = null;
+        let isProblemFormVisible = false;
+
+        const rateOptions = document.querySelectorAll('.rate-option');
+        const toggleProblemBtn = document.getElementById('toggleProblemBtn');
+        const problemForm = document.getElementById('problemForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const successMsg = document.getElementById('successMsg');
+
+        // التفاعل مع التقييمات
+        rateOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                rateOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                selectedRating = this.getAttribute('data-value');
+            });
+        });
+
+        // زر إظهار/إخفاء المشكلة
+        toggleProblemBtn.addEventListener('click', function() {
+            isProblemFormVisible = !isProblemFormVisible;
+            if (isProblemFormVisible) {
+                problemForm.style.display = 'block';
+                this.innerHTML = '<span>❌</span> إلغاء الإبلاغ';
+                this.style.color = '#f87171';
+            } else {
+                problemForm.style.display = 'none';
+                this.innerHTML = '<span>⚠️</span> هل واجهتك مشكلة؟';
+                this.style.color = 'var(--text-muted)';
+            }
+        });
+
+        // الإرسال لقاعدة البيانات
+        submitBtn.addEventListener('click', async function() {
+            if (!selectedRating) {
+                alert("برجاء اختيار تقييم أولاً بالضغط على أحد الأوجه.");
+                return;
+            }
+
+            const driverNameInput = document.getElementById('driverName').value.trim();
+            const companyNameInput = document.getElementById('companyName').value.trim();
+
+            if (!driverNameInput) {
+                alert("برجاء كتابة اسم السائق.");
+                return;
+            }
+
+            if (!companyNameInput) {
+                alert("برجاء كتابة اسم الشركة.");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'جاري الإرسال... ⏳';
+
+            const evaluationData = {
+                rating: selectedRating,
+                driverName: driverNameInput,
+                companyName: companyNameInput,
+                hasProblem: isProblemFormVisible,
+                loadingTime: document.getElementById('loadingTime').value,
+                problemDetails: document.getElementById('problemDetails').value,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "loading_evaluations"), evaluationData);
+                
+                // إخفاء المحتوى وإظهار رسالة النجاح
+                document.querySelector('.rating-grid').style.display = 'none';
+                document.querySelector('.main-fields').style.display = 'none';
+                document.querySelector('.problem-btn-container').style.display = 'none';
+                problemForm.style.display = 'none';
+                submitBtn.style.display = 'none';
+                document.querySelector('h2').style.display = 'none';
+                
+                successMsg.style.display = 'block';
+                
+                // إعادة تحميل الصفحة بعد 3 ثواني
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("حدث خطأ أثناء إرسال التقييم، برجاء المحاولة مرة أخرى.");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'إرسال التقييم <span>✔️</span>';
+            }
+        });
+    </script>
+</body>
+</html>
